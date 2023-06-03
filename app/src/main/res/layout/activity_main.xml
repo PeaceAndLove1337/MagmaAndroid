@@ -6,35 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".presentation.views.MainActivity">
 
-    <TextView
-        android:id="@+id/current_file_text_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/imageView3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
-
-    <Button
-        android:id="@+id/button_explorer"
-        android:layout_width="180dp"
-        android:layout_height="64dp"
-        android:backgroundTint="@color/button_color"
-        android:fontFamily="serif"
-        android:text="Выбрать файл"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="200dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.35" />
-
+        app:srcCompat="@drawable/main" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -45,20 +24,40 @@
         android:layout_marginStart="20dp"
         android:backgroundTint="@color/white"
         android:progressBackgroundTint="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="160dp"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonDecode" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/current_file_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@+id/imageView3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-        android:layout_height="wrap_content"
+    <Button
+        android:id="@+id/button_explorer"
+        android:layout_width="180dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="170dp"
+        android:backgroundTint="@color/button_color"
+        android:fontFamily="serif"
+        android:text="Выбрать файл"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/main" />
+        app:layout_constraintVertical_bias="0.35" />
 
     <ImageView
         android:id="@+id/imageView3"
@@ -69,6 +68,61 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_explorer"
         app:srcCompat="@drawable/secondar" />
+
+
+    <RadioGroup
+        android:id="@+id/radioGroupRealization"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="4dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView3">
+
+        <RadioButton
+            android:id="@+id/radioButtonNonOptimizedRealization"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Неоптимизированная реализация"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioButtonOptimizedRealization"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Оптимизированная реализация"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioButtonParallelizedOptimized"
+            android:layout_width="385dp"
+            android:layout_height="match_parent"
+            android:text="Распараллеленная оптимизированная реализация"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioButtonBackendOptimizedRealization"
+            android:layout_width="385dp"
+            android:layout_height="match_parent"
+            android:text="Вычисление на удаленной ЭВМ"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioButtonBackendOptimizedWithSsl"
+            android:layout_width="385dp"
+            android:layout_height="match_parent"
+            android:text="Вычисление на удаленной ЭВМ + https"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+    </RadioGroup>
 
     <Button
         android:id="@+id/buttonDecode"
@@ -81,10 +135,9 @@
         android:textColor="@color/white"
         android:textSize="14sp"
         android:theme="@style/RoundedCornerButton"
-        app:layout_constraintBottom_toTopOf="@+id/progressBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/buttonEncode"
-        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupRealization" />
 
     <Button
         android:id="@+id/buttonEncode"
@@ -97,10 +150,9 @@
         android:textColor="@color/white"
         android:textSize="14sp"
         android:theme="@style/RoundedCornerButton"
-        app:layout_constraintBottom_toTopOf="@+id/progressBar"
         app:layout_constraintEnd_toStartOf="@+id/buttonDecode"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupRealization" />
 
     <EditText
         android:id="@+id/editTextPasswordKey"
@@ -168,5 +220,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button_explorer" />
 
+    <ProgressBar
+        android:id="@+id/wait_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

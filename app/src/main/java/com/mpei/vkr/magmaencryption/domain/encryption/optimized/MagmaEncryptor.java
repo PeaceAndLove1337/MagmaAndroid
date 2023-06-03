@@ -1,8 +1,9 @@
-package com.mpei.vkr.magmaencryption.domain.encryption;
+package com.mpei.vkr.magmaencryption.domain.encryption.optimized;
 
 
 
 import com.mpei.vkr.magmaencryption.domain.utils.TypeConverter;
+import com.mpei.vkr.magmaencryption.presentation.ProgressHelper;
 
 import java.util.BitSet;
 
@@ -42,7 +43,7 @@ public class MagmaEncryptor {
         mExpandedKeys = keyExpansion(encryptionKey);
     }
 
-    public byte[] encryptInCodeBook(byte[] inputArray) {
+    public byte[] encryptInCodeBook(byte[] inputArray, ProgressHelper progressHelper) {
         int countOfFullBlocks = inputArray.length / 8;
         int residue = inputArray.length % 8;
 
@@ -50,9 +51,13 @@ public class MagmaEncryptor {
         ;
         byte[] currentBlockToEncrypt = new byte[8];
 
+
         for (int i = 0; i < countOfFullBlocks; i++) {
             System.arraycopy(inputArray, i * 8, currentBlockToEncrypt, 0, 8);
             System.arraycopy(oneBlockEncode(currentBlockToEncrypt), 0, result, i * 8, 8);
+            progressHelper.setProgressToBarInAnotherThread(
+                    (int) Math.round(((double) i/ countOfFullBlocks) * 100)
+            );
         }
 
         if (residue != 0) {
@@ -64,7 +69,7 @@ public class MagmaEncryptor {
         return result;
     }
 
-    public byte[] decryptInCodeBook(byte[] inputArray) {
+    public byte[] decryptInCodeBook(byte[] inputArray, ProgressHelper progressHelper) {
         if (inputArray.length % 8!=0){
             throw new RuntimeException("INCORRECT INPUT ARRAY");
         }
@@ -76,6 +81,9 @@ public class MagmaEncryptor {
         for (int i = 0; i < inputArray.length / 8; i++) {
             System.arraycopy(inputArray, i * 8, currentBlockToDecrypt, 0, 8);
             System.arraycopy(oneBlockDecode(currentBlockToDecrypt), 0, result, i * 8, 8);
+            progressHelper.setProgressToBarInAnotherThread(
+                    (int) Math.round(((double) i/ ((double)inputArray.length / 8)) * 100)
+            );
         }
 
         return result;

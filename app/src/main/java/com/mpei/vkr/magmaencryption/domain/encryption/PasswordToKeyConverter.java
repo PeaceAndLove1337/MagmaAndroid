@@ -1,5 +1,7 @@
 package com.mpei.vkr.magmaencryption.domain.encryption;
 
+import com.mpei.vkr.magmaencryption.domain.encryption.hashing.StreebogHasher;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -31,13 +33,7 @@ public class PasswordToKeyConverter {
                 mStringPassword.getBytes(mCharset)) : new byte[0];
     }
 
-    //todo
-    public void getBytesFromPassByStreebog(){
-
-    }
-
-
-    private void sh(){
-        System.out.println(mStringPassword);
+    public byte[] getBytesFromPassByStreebog(){
+        return new StreebogHasher(mStringPassword).generate256Hash();
     }
 }

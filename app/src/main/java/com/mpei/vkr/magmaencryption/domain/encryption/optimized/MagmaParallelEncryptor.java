@@ -1,4 +1,4 @@
-package com.mpei.vkr.magmaencryption.domain.encryption;
+package com.mpei.vkr.magmaencryption.domain.encryption.optimized;
 
 
 import android.annotation.SuppressLint;
@@ -55,15 +55,15 @@ public class MagmaParallelEncryptor {
 
     public MagmaParallelEncryptor(byte[] encryptionKey) {
         mExpandedKeys = keyExpansion(encryptionKey);
-        mCountOfParallelThreads = 5;
-        mCountOfBlocksPerTask = 20;
+        mCountOfParallelThreads = 15;
+        mCountOfBlocksPerTask = 2000;
         mExecutorService = Executors.newFixedThreadPool(mCountOfParallelThreads);
     }
 
     public MagmaParallelEncryptor(byte[] encryptionKey, int countOfParallelThreads) {
         mExpandedKeys = keyExpansion(encryptionKey);
         mCountOfParallelThreads = countOfParallelThreads;
-        mCountOfBlocksPerTask = 20;
+        mCountOfBlocksPerTask = 2000;
         mExecutorService = Executors.newFixedThreadPool(countOfParallelThreads);
     }
 

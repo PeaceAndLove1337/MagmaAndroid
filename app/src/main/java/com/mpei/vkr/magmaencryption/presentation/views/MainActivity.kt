@@ -10,9 +10,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.provider.OpenableColumns
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
+import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -35,13 +37,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var editTextFileName: EditText
     private lateinit var textViewNameOfCurrentFile: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var waitBar: ProgressBar
+
+    private lateinit var radioButtonNonOptimized: RadioButton
+    private lateinit var radioButtonOptimized: RadioButton
+    private lateinit var radioButtonOptimizedParallelized: RadioButton
+    private lateinit var radioButtonOnBack: RadioButton
+    private lateinit var radioButtonOnBackWithSsl: RadioButton
 
     private lateinit var byteArrayOfSelectedFile: ByteArray
 
     private lateinit var mainViewModel: MainViewModel
-
-    private val FILE_SELECT_CODE = 1
-    private val EXTERNAL_STORAGE_PERMISSION_CODE = 23
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,6 +70,12 @@ class MainActivity : AppCompatActivity() {
         editTextFileName = findViewById(R.id.editTextFileName)
         textViewNameOfCurrentFile = findViewById(R.id.current_file_text_view)
         progressBar = findViewById(R.id.progressBar)
+        radioButtonNonOptimized = findViewById(R.id.radioButtonNonOptimizedRealization)
+        radioButtonOptimized = findViewById(R.id.radioButtonOptimizedRealization)
+        radioButtonOptimizedParallelized = findViewById(R.id.radioButtonParallelizedOptimized)
+        radioButtonOnBack = findViewById(R.id.radioButtonBackendOptimizedRealization)
+        radioButtonOnBackWithSsl = findViewById(R.id.radioButtonBackendOptimizedWithSsl)
+        waitBar = findViewById(R.id.wait_bar)
     }
 
     private fun initViewModel() {
@@ -73,6 +85,9 @@ class MainActivity : AppCompatActivity() {
     private fun initObservers() {
         mainViewModel.getEncryptionState().observe(this) {
             try {
+                if (it == null) {
+                    throw java.lang.Exception()
+                }
                 createFile(
                     it,
                     MagmaApplication.takeApplicationEncodedFilesPath(),
@@ -80,26 +95,36 @@ class MainActivity : AppCompatActivity() {
                 )
                 makeToastSuccessEncoded()
                 makeElementsEnabled(true)
+                waitBar.visibility = View.GONE
                 progressBar.progress = 0
             } catch (ex: Exception) {
+                waitBar.visibility = View.GONE
+                progressBar.progress = 0
+                makeElementsEnabled(true)
                 makeToastError()
-                Log.e("MAIN_ACTIVITY_EXCEPTION", ex.toString())
+                Log.e("MAIN_ACTIVITY_ENCRYPTION_STATE_EXCEPCTION", ex.toString())
             }
         }
         mainViewModel.getDecryptionState().observe(this) {
             try {
+                if (it == null) {
+                    throw java.lang.Exception()
+                }
                 createFile(
                     it,
                     MagmaApplication.takeApplicationDecodedFilesPath(),
                     "/${editTextFileName.text}"
                 )
-
                 makeToastSuccessDecoded()
                 makeElementsEnabled(true)
+                waitBar.visibility = View.GONE
                 progressBar.progress = 0
             } catch (ex: Exception) {
+                waitBar.visibility = View.GONE
+                progressBar.progress = 0
+                makeElementsEnabled(true)
                 makeToastError()
-                Log.e("MAIN_ACTIVITY_EXCEPTION", ex.toString())
+                Log.e("MAIN_ACTIVITY_DECRYPTION_STATE_EXCEPCTION", ex.toString())
             }
         }
     }
@@ -109,70 +134,101 @@ class MainActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun initButtons() {
-
         explorerButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "*/*"
             intent.addCategory(Intent.CATEGORY_OPENABLE)
             startActivityForResult(Intent.createChooser(intent, "Select a file to Encode"), FILE_SELECT_CODE)
         }
-
         encodeButton.setOnClickListener {
             val encodeKeyOnPassword = editTextPasswordKey.text.toString()
             val fileNameText = editTextFileName.text.toString()
             when {
-                encodeKeyOnPassword.isEmpty() -> {
-                    makeToastIsEmptyPasswordKey()
-                }
-                fileNameText.isEmpty() -> {
-                    makeToastIsEmptyFileName()
-                }
-                else -> {
-                    when {
-                        !checkPasswordGoodLength(encodeKeyOnPassword) -> {
-                            makeToastBadPasswordLength()
-                        }
-                        !checkPasswordIsEasy(encodeKeyOnPassword) -> {
-                            makeToastBadPasswordEasy()
-                        }
-                        else -> {
-                            makeElementsEnabled(false)
-                            mainViewModel.makeEncodingInThread(
+                encodeKeyOnPassword.isEmpty() -> makeToastIsEmptyPasswordKey()
+                fileNameText.isEmpty() -> makeToastIsEmptyFileName()
+                else -> when {
+                    !checkPasswordGoodLength(encodeKeyOnPassword) -> makeToastBadPasswordLength()
+                    !checkPasswordIsEasy(encodeKeyOnPassword) -> makeToastBadPasswordEasy()
+                    else -> {
+                        waitBar.visibility = View.VISIBLE
+                        makeElementsEnabled(false)
+                        when {
+                            radioButtonNonOptimized.isChecked -> mainViewModel.makeNonOptimizedEncoding(
                                 encodeKeyOnPassword,
                                 byteArrayOfSelectedFile,
                                 createProgressHelper()
                             )
+                            radioButtonOptimized.isChecked -> mainViewModel.makeOptimizedEncoding(
+                                encodeKeyOnPassword,
+                                byteArrayOfSelectedFile,
+                                createProgressHelper()
+                            )
+                            radioButtonOptimizedParallelized.isChecked -> mainViewModel.makeOptimizedParallelEncoding(
+                                encodeKeyOnPassword,
+                                byteArrayOfSelectedFile,
+                                createProgressHelper()
+                            )
+                            radioButtonOnBack.isChecked -> mainViewModel.makeBackEncoding(
+                                encodeKeyOnPassword,
+                                byteArrayOfSelectedFile
+                            )
+                            radioButtonOnBackWithSsl.isChecked -> mainViewModel.makeBackSslEncoding(
+                                baseContext,
+                                encodeKeyOnPassword,
+                                byteArrayOfSelectedFile
+                            )
+                            else -> {
+                                makeElementsEnabled(true)
+                                makeToastNotSelectedRealization()
+                            }
                         }
                     }
                 }
             }
         }
-
         decodeButton.setOnClickListener {
             val decodeKeyOnPassword = editTextPasswordKey.text.toString()
             val fileNameText = editTextFileName.text.toString()
             when {
-                decodeKeyOnPassword.isEmpty() -> {
-                    makeToastIsEmptyPasswordKey()
-                }
-                fileNameText.isEmpty() -> {
-                    makeToastIsEmptyFileName()
-                }
+                decodeKeyOnPassword.isEmpty() -> makeToastIsEmptyPasswordKey()
+                fileNameText.isEmpty() -> makeToastIsEmptyFileName()
                 else -> {
                     when {
-                        !checkPasswordGoodLength(decodeKeyOnPassword) -> {
-                            makeToastBadPasswordLength()
-                        }
-                        !checkPasswordIsEasy(decodeKeyOnPassword) -> {
-                            makeToastBadPasswordEasy()
-                        }
+                        !checkPasswordGoodLength(decodeKeyOnPassword) -> makeToastBadPasswordLength()
+                        !checkPasswordIsEasy(decodeKeyOnPassword) -> makeToastBadPasswordEasy()
                         else -> {
                             makeElementsEnabled(false)
-                            mainViewModel.makeDecodingInThread(
-                                decodeKeyOnPassword,
-                                byteArrayOfSelectedFile,
-                                createProgressHelper()
-                            )
+                            waitBar.visibility = View.VISIBLE
+                            when {
+                                radioButtonNonOptimized.isChecked -> mainViewModel.makeNonOptimizedDecoding(
+                                    decodeKeyOnPassword,
+                                    byteArrayOfSelectedFile,
+                                    createProgressHelper()
+                                )
+                                radioButtonOptimized.isChecked -> mainViewModel.makeOptimizedDecoding(
+                                    decodeKeyOnPassword,
+                                    byteArrayOfSelectedFile,
+                                    createProgressHelper()
+                                )
+                                radioButtonOptimizedParallelized.isChecked -> mainViewModel.makeOptimizedParallelDecoding(
+                                    decodeKeyOnPassword,
+                                    byteArrayOfSelectedFile,
+                                    createProgressHelper()
+                                )
+                                radioButtonOnBack.isChecked -> mainViewModel.makeBackDecoding(
+                                    decodeKeyOnPassword,
+                                    byteArrayOfSelectedFile
+                                )
+                                radioButtonOnBackWithSsl.isChecked -> mainViewModel.makeBackSslDecoding(
+                                    baseContext,
+                                    decodeKeyOnPassword,
+                                    byteArrayOfSelectedFile
+                                )
+                                else -> {
+                                    makeElementsEnabled(true)
+                                    makeToastNotSelectedRealization()
+                                }
+                            }
                         }
                     }
                 }
@@ -203,6 +259,11 @@ class MainActivity : AppCompatActivity() {
         explorerButton.isEnabled = isEnabled
         editTextPasswordKey.isEnabled = isEnabled
         editTextFileName.isEnabled = isEnabled
+        radioButtonOnBackWithSsl.isEnabled = isEnabled
+        radioButtonOnBack.isEnabled = isEnabled
+        radioButtonOptimized.isEnabled = isEnabled
+        radioButtonOptimizedParallelized.isEnabled = isEnabled
+        radioButtonNonOptimized.isEnabled = isEnabled
     }
 
     private fun checkPasswordIsEasy(inputString: String): Boolean {
@@ -211,14 +272,11 @@ class MainActivity : AppCompatActivity() {
             "987654321", "qweryuiop", "mynoob", "123321", "666666", "atcskd2w", "7777777", "1q2w3e4r", "654321",
             "555555", "3rjs1la7qe", "google", "1q2w3e4r5t", "123qwe", "zxcvbnm", "1q2w3e",
         )
-
         return !badPasswords.contains(inputString)
     }
 
-    private fun checkPasswordGoodLength(inputString: String): Boolean {
-        val minLength = 5
-        return inputString.length >= minLength
-    }
+    private fun checkPasswordGoodLength(inputString: String): Boolean =
+        inputString.length >= MIN_PASSWORD_LENGTH
 
     private fun createFile(inputBytesToSave: ByteArray, filePath: String, fileName: String) {
         val file = File(filePath + fileName)
@@ -243,9 +301,9 @@ class MainActivity : AppCompatActivity() {
         var result: String? = null
         if (uri.scheme == "content") {
             val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
-            cursor.use { cursor ->
-                if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+            cursor.use { _cursor ->
+                if (_cursor != null && _cursor.moveToFirst()) {
+                    result = _cursor.getString(_cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
                 }
             }
         }
@@ -291,7 +349,13 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "Произошла непредвиденная ошибка!", Toast.LENGTH_LONG).show()
     }
 
-    private fun makeToastFileIsNotEncoded() {
-        Toast.makeText(this, "Ошибка! Выбранный файл не шифровался!", Toast.LENGTH_LONG).show()
+    private fun makeToastNotSelectedRealization() {
+        Toast.makeText(this, "Не выбрана реализация криптоалгоритма!", Toast.LENGTH_LONG).show()
+    }
+
+    private companion object {
+        const val FILE_SELECT_CODE = 1
+        const val EXTERNAL_STORAGE_PERMISSION_CODE = 23
+        const val MIN_PASSWORD_LENGTH = 5
     }
 }
